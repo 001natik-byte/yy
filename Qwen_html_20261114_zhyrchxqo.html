@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка надёжности пароля</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        /* Прогресс-бар */
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar-wrapper {
+            position: relative;
+            height: 30px;
+            background-color: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff4444, #ffbb33, #00C851);
+            transition: width 0.5s ease-in-out, background 0.5s ease-in-out;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        /* Цвета для разных уровней */
+        .progress-bar.weak {
+            background: linear-gradient(90deg, #ff4444, #ff6b6b);
+        }
+        
+        .progress-bar.medium {
+            background: linear-gradient(90deg, #ffbb33, #ffd700);
+        }
+        
+        .progress-bar.strong {
+            background: linear-gradient(90deg, #00C851, #00E676);
+        }
+        
+        /* Информация о пароле */
+        .password-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .info-item {
+            margin: 8px 0;
+            color: #555;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .strength-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .strength-badge.weak {
+            background-color: #ff4444;
+        }
+        
+        .strength-badge.medium {
+            background-color: #ffbb33;
+        }
+        
+        .strength-badge.strong {
+            background-color: #00C851;
+        }
+        
+        .checkbox-group {
+            margin-top: 10px;
+        }
+        
+        .checkbox-group label {
+            display: inline;
+            font-weight: normal;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔐 Проверка надёжности пароля</h2>
+        
+        <div class="input-group">
+            <label for="password">Введите пароль:</label>
+            <input type="password" id="password" placeholder="Ваш пароль">
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="showPassword">
+                <label for="showPassword">Показать пароль</label>
+            </div>
+        </div>
+        
+        <!-- Прогресс-бар -->
+        <div class="progress-container">
+            <label>Уровень сложности:</label>
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+        
+        <!-- Детальная информация -->
+        <div class="password-info" id="passwordInfo" style="display: none;">
+            <div class="info-item">
+                <span class="info-label">Энтропия:</span>
+                <span id="entropyValue">-</span> бит
+            </div>
+            <div class="info-item">
+                <span class="info-label">Примерное время взлома:</span>
+                <span id="crackTimeValue">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Уровень сложности:</span>
+                <span class="strength-badge" id="strengthBadge">-</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Функция calculatePasswordStrength (вставить сюда код из выше)
+        
+        // Обновление прогресс-бара
+        function updateProgressBar(result) {
+            const progressBar = document.getElementById('progressBar');
+            const passwordInfo = document.getElementById('passwordInfo');
+            const entropyValue = document.getElementById('entropyValue');
+            const crackTimeValue = document.getElementById('crackTimeValue');
+            const strengthBadge = document.getElementById('strengthBadge');
+            
+            // Показываем информацию
+            passwordInfo.style.display = 'block';
+            
+            // Заполняем данные
+            entropyValue.textContent = result.entropy;
+            crackTimeValue.textContent = result.crackTimeFormatted;
+            strengthBadge.textContent = result.strengthLevel.toUpperCase();
+            
+            // Убираем старые классы
+            progressBar.classList.remove('weak', 'medium', 'strong');
+            strengthBadge.classList.remove('weak', 'medium', 'strong');
+            
+            // Добавляем новый класс в зависимости от уровня
+            progressBar.classList.add(result.strengthLevel);
+            strengthBadge.classList.add(result.strengthLevel);
+            
+            // Рассчитываем процент заполнения (максимум 100 бит для визуализации)
+            const maxEntropy = 100;
+            const percentage = Math.min((result.entropy / maxEntropy) * 100, 100);
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = Math.round(percentage) + '%';
+        }
+        
+        // Обработчики событий
+        const passwordInput = document.getElementById('password');
+        const showPasswordCheckbox = document.getElementById('showPassword');
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const result = calculatePasswordStrength(password);
+            updateProgressBar(result);
+        });
+        
+        showPasswordCheckbox.addEventListener('change', function() {
+            passwordInput.type = this.checked ? 'text' : 'password';
+        });
+    </script>
+</body>
+</html>
